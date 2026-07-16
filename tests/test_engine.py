@@ -173,8 +173,13 @@ class EnhancedIdealizationEngineTests(unittest.TestCase):
                 "Tradeoff data is not available yet.",
             ],
         )
-        tradeoffs = self.engine._build_tradeoffs({"feasibility": 0.8})
-        self.assertEqual(len(tradeoffs), 2)
+        self.assertEqual(
+            self.engine._build_tradeoffs({"feasibility": 0.8}),
+            [
+                "Strength currently centers on feasibility.",
+                "Tradeoff analysis needs additional metrics beyond feasibility.",
+            ],
+        )
 
 
 if __name__ == "__main__":

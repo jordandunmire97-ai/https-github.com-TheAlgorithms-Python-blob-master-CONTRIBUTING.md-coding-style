@@ -66,6 +66,9 @@ CONFIDENCE_MARGIN_BASELINE = 0.5
 CONFIDENCE_WEIGHT_BASE = 0.4
 CONFIDENCE_WEIGHT_STABILITY = 0.4
 CONFIDENCE_WEIGHT_EVIDENCE = 0.2
+DEFAULT_CONSTRAINT_MARGIN = 0.5
+DEFAULT_SCENARIO_SCORE = 0.5
+DEFAULT_EVIDENCE_SCORE = 0.5
 
 
 class EnhancedIdealizationEngine:
@@ -302,16 +305,16 @@ class EnhancedIdealizationEngine:
         assessments: list[ScenarioAssessment],
         candidate: Candidate,
     ) -> float:
-        margins = [constraint.margin(metrics) for constraint in constraints] or [0.5]
+        margins = [constraint.margin(metrics) for constraint in constraints] or [DEFAULT_CONSTRAINT_MARGIN]
         base = clamp(
             mean(clamp(margin, -1.0, 1.0) for margin in margins) / CONFIDENCE_MARGIN_SCALE
             + CONFIDENCE_MARGIN_BASELINE
         )
-        scenario_scores = [assessment.score for assessment in assessments] or [0.5]
+        scenario_scores = [assessment.score for assessment in assessments] or [DEFAULT_SCENARIO_SCORE]
         stability = 1.0 - clamp(pstdev(scenario_scores) if len(scenario_scores) > 1 else 0.0)
         evidence_total = len(candidate.facts) + len(candidate.assumptions)
         evidence = (
-            len(candidate.facts) / evidence_total if evidence_total else 0.5
+            len(candidate.facts) / evidence_total if evidence_total else DEFAULT_EVIDENCE_SCORE
         )
         confidence = (
             (base * CONFIDENCE_WEIGHT_BASE)
@@ -328,8 +331,13 @@ class EnhancedIdealizationEngine:
                 "Strength data is not available yet.",
                 "Tradeoff data is not available yet.",
             ]
-        strengths = names[:2] if len(names) > 1 else [names[0], names[0]]
-        weaknesses = names[-2:] if len(names) > 1 else [names[0], names[0]]
+        if len(names) == 1:
+            return [
+                f"Strength currently centers on {names[0]}.",
+                f"Tradeoff analysis needs additional metrics beyond {names[0]}.",
+            ]
+        strengths = names[:2]
+        weaknesses = names[-2:]
         return [
             f"Strength concentrated in {strengths[0]} and {strengths[1]}.",
             f"Tradeoff pressure remains around {weaknesses[0]} and {weaknesses[1]}.",
