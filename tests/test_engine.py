@@ -165,6 +165,17 @@ class EnhancedIdealizationEngineTests(unittest.TestCase):
             recommendation_by_name["Safety Mesh"].confidence,
         )
 
+    def test_tradeoff_builder_handles_sparse_metrics(self) -> None:
+        self.assertEqual(
+            self.engine._build_tradeoffs({}),
+            [
+                "Strength data is not available yet.",
+                "Tradeoff data is not available yet.",
+            ],
+        )
+        tradeoffs = self.engine._build_tradeoffs({"feasibility": 0.8})
+        self.assertEqual(len(tradeoffs), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -291,14 +291,23 @@ class EnhancedIdealizationEngine:
         base = clamp(mean(clamp(margin, -1.0, 1.0) for margin in margins) / 1.5 + 0.5)
         scenario_scores = [assessment.score for assessment in assessments] or [0.5]
         stability = 1.0 - clamp(pstdev(scenario_scores) if len(scenario_scores) > 1 else 0.0)
-        evidence = len(candidate.facts) / max(len(candidate.facts) + len(candidate.assumptions), 1)
+        evidence_total = len(candidate.facts) + len(candidate.assumptions)
+        evidence = (
+            len(candidate.facts) / evidence_total if evidence_total else 0.5
+        )
         confidence = (base * 0.4) + (stability * 0.4) + (evidence * 0.2)
         return round(clamp(confidence), 4)
 
     def _build_tradeoffs(self, metrics: dict[str, float]) -> list[str]:
         ordered = sorted(metrics.items(), key=lambda item: item[1], reverse=True)
-        strengths = [name for name, _ in ordered[:2]]
-        weaknesses = [name for name, _ in ordered[-2:]]
+        names = [name for name, _ in ordered]
+        if not names:
+            return [
+                "Strength data is not available yet.",
+                "Tradeoff data is not available yet.",
+            ]
+        strengths = names[:2] if len(names) > 1 else [names[0], names[0]]
+        weaknesses = names[-2:] if len(names) > 1 else [names[0], names[0]]
         return [
             f"Strength concentrated in {strengths[0]} and {strengths[1]}.",
             f"Tradeoff pressure remains around {weaknesses[0]} and {weaknesses[1]}.",
