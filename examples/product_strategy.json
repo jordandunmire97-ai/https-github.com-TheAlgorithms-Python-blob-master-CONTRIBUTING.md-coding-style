@@ -1,0 +1,135 @@
+{
+  "title": "Immense Decision Intelligence Workspace",
+  "domain": "product strategy",
+  "objective": "Design a platform that generates idealized product futures for enterprise teams.",
+  "success_definition": "Deliver explainable, resilient, and high-alignment recommendations faster than manual planning.",
+  "baseline_metrics": {
+    "feasibility": 0.66,
+    "efficiency": 0.62,
+    "goal_alignment": 0.7,
+    "risk_resilience": 0.58,
+    "adaptability": 0.6,
+    "collaboration": 0.57,
+    "cost_efficiency": 0.59,
+    "innovation": 0.64
+  },
+  "criteria": [
+    { "name": "feasibility", "weight": 0.17 },
+    { "name": "efficiency", "weight": 0.14 },
+    { "name": "goal_alignment", "weight": 0.22 },
+    { "name": "risk_resilience", "weight": 0.16 },
+    { "name": "adaptability", "weight": 0.11 },
+    { "name": "collaboration", "weight": 0.08 },
+    { "name": "cost_efficiency", "weight": 0.06 },
+    { "name": "innovation", "weight": 0.06 }
+  ],
+  "constraints": [
+    {
+      "name": "minimum feasibility",
+      "metric": "feasibility",
+      "minimum": 0.55,
+      "locked": true
+    },
+    {
+      "name": "minimum resilience",
+      "metric": "risk_resilience",
+      "minimum": 0.5
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "budget compression",
+      "probability": 0.45,
+      "metric_adjustments": {
+        "cost_efficiency": 0.08,
+        "innovation": -0.04,
+        "feasibility": -0.03
+      },
+      "narrative": "Budgets tighten and leaders want faster proof of value."
+    },
+    {
+      "name": "rapid demand surge",
+      "probability": 0.35,
+      "metric_adjustments": {
+        "adaptability": 0.08,
+        "collaboration": 0.05,
+        "efficiency": -0.03
+      },
+      "narrative": "Adoption accelerates and the platform must scale across teams."
+    },
+    {
+      "name": "compliance expansion",
+      "probability": 0.2,
+      "metric_adjustments": {
+        "risk_resilience": -0.06,
+        "feasibility": -0.02,
+        "goal_alignment": 0.03
+      },
+      "narrative": "Regulatory requirements grow and auditability becomes more important."
+    }
+  ],
+  "profiles": [
+    {
+      "name": "enterprise_ops",
+      "weight_adjustments": {
+        "risk_resilience": 0.08,
+        "collaboration": 0.04,
+        "innovation": -0.02
+      },
+      "metric_bias": {
+        "risk_resilience": 0.05,
+        "collaboration": 0.04
+      }
+    },
+    {
+      "name": "innovation_lab",
+      "weight_adjustments": {
+        "innovation": 0.08,
+        "adaptability": 0.03,
+        "cost_efficiency": -0.03
+      },
+      "metric_bias": {
+        "innovation": 0.05,
+        "adaptability": 0.04
+      }
+    }
+  ],
+  "candidate_blueprints": [
+    {
+      "name": "Evidence Grid",
+      "description": "A measured platform centered on auditable recommendations and team consensus.",
+      "metrics": {
+        "feasibility": 0.74,
+        "efficiency": 0.63,
+        "goal_alignment": 0.79,
+        "risk_resilience": 0.73,
+        "adaptability": 0.67,
+        "collaboration": 0.76,
+        "cost_efficiency": 0.58,
+        "innovation": 0.61
+      },
+      "assumptions": [
+        "Teams will share structured input consistently."
+      ],
+      "facts": [
+        "The blueprint preserves full reasoning trails.",
+        "The blueprint prioritizes cross-team visibility."
+      ],
+      "collaboration_notes": [
+        "Operations wants strong auditability.",
+        "Product leadership wants clear option comparison."
+      ]
+    }
+  ],
+  "collaboration_notes": [
+    "Design wants visual tradeoff comparison.",
+    "Strategy wants the system to compare multiple futures at once."
+  ],
+  "history": [
+    {
+      "label": "manual planning baseline",
+      "score": 0.69,
+      "summary": "Past process relied on manual workshops and slower tradeoff analysis."
+    }
+  ]
+}
