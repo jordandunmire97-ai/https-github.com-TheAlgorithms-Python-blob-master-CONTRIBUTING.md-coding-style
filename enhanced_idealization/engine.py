@@ -55,6 +55,18 @@ DEFAULT_STRATEGIES: dict[str, dict[str, float]] = {
     },
 }
 
+SCORE_WEIGHT_BASE = 0.55
+SCORE_WEIGHT_SCENARIO = 0.35
+SCORE_WEIGHT_FUTURE = 0.10
+LOCKED_CONSTRAINT_WEIGHT_BOOST = 0.15
+LOCKED_CONSTRAINT_PENALTY = 0.35
+UNLOCKED_CONSTRAINT_PENALTY = 0.15
+CONFIDENCE_MARGIN_SCALE = 1.5
+CONFIDENCE_MARGIN_BASELINE = 0.5
+CONFIDENCE_WEIGHT_BASE = 0.4
+CONFIDENCE_WEIGHT_STABILITY = 0.4
+CONFIDENCE_WEIGHT_EVIDENCE = 0.2
+
 
 class EnhancedIdealizationEngine:
     def recommend(
@@ -83,7 +95,10 @@ class EnhancedIdealizationEngine:
                 for metric in ("adaptability", "innovation", "collaboration")
             )
             total_score = round(
-                (base_score * 0.55) + (scenario_score * 0.35) + (future_readiness * 0.10), 4
+                (base_score * SCORE_WEIGHT_BASE)
+                + (scenario_score * SCORE_WEIGHT_SCENARIO)
+                + (future_readiness * SCORE_WEIGHT_FUTURE),
+                4,
             )
             confidence = self._compute_confidence(
                 candidate.metrics, request.constraints, scenario_assessments, candidate
@@ -164,7 +179,7 @@ class EnhancedIdealizationEngine:
                 constraint.locked and constraint.metric == criterion.name
                 for constraint in request.constraints
             ):
-                weight += 0.15
+                weight += LOCKED_CONSTRAINT_WEIGHT_BOOST
             raw_weights[criterion.name] = max(weight, 0.01)
 
         total = sum(raw_weights.values()) or 1.0
@@ -243,7 +258,7 @@ class EnhancedIdealizationEngine:
             if constraint.is_satisfied(metrics):
                 status.append(f"pass: {constraint.name}")
                 continue
-            severity = 0.35 if constraint.locked else 0.15
+            severity = LOCKED_CONSTRAINT_PENALTY if constraint.locked else UNLOCKED_CONSTRAINT_PENALTY
             penalty += severity
             status.append(f"fail: {constraint.name}")
         return round(clamp(base - penalty), 4), status
@@ -276,7 +291,7 @@ class EnhancedIdealizationEngine:
     ) -> float:
         total_weight = sum(scenario.probability for scenario in scenarios) or 1.0
         weighted = 0.0
-        for assessment, scenario in zip(assessments, scenarios, strict=True):
+        for assessment, scenario in zip(assessments, scenarios):
             weighted += assessment.score * scenario.probability
         return round(weighted / total_weight, 4)
 
@@ -288,14 +303,21 @@ class EnhancedIdealizationEngine:
         candidate: Candidate,
     ) -> float:
         margins = [constraint.margin(metrics) for constraint in constraints] or [0.5]
-        base = clamp(mean(clamp(margin, -1.0, 1.0) for margin in margins) / 1.5 + 0.5)
+        base = clamp(
+            mean(clamp(margin, -1.0, 1.0) for margin in margins) / CONFIDENCE_MARGIN_SCALE
+            + CONFIDENCE_MARGIN_BASELINE
+        )
         scenario_scores = [assessment.score for assessment in assessments] or [0.5]
         stability = 1.0 - clamp(pstdev(scenario_scores) if len(scenario_scores) > 1 else 0.0)
         evidence_total = len(candidate.facts) + len(candidate.assumptions)
         evidence = (
             len(candidate.facts) / evidence_total if evidence_total else 0.5
         )
-        confidence = (base * 0.4) + (stability * 0.4) + (evidence * 0.2)
+        confidence = (
+            (base * CONFIDENCE_WEIGHT_BASE)
+            + (stability * CONFIDENCE_WEIGHT_STABILITY)
+            + (evidence * CONFIDENCE_WEIGHT_EVIDENCE)
+        )
         return round(clamp(confidence), 4)
 
     def _build_tradeoffs(self, metrics: dict[str, float]) -> list[str]:
