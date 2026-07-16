@@ -26,13 +26,13 @@ with confidence, tradeoffs, and reasoning traces.
 ## Run the sample
 
 ```bash
-cd /home/runner/work/https-github.com-TheAlgorithms-Python-blob-master-CONTRIBUTING.md-coding-style/https-github.com-TheAlgorithms-Python-blob-master-CONTRIBUTING.md-coding-style
+cd /path/to/enhanced-idealization
 python -m enhanced_idealization examples/product_strategy.json --profile enterprise_ops
 ```
 
 ## Run the tests
 
 ```bash
-cd /home/runner/work/https-github.com-TheAlgorithms-Python-blob-master-CONTRIBUTING.md-coding-style/https-github.com-TheAlgorithms-Python-blob-master-CONTRIBUTING.md-coding-style
+cd /path/to/enhanced-idealization
 python -m unittest discover -s tests
 ```
