@@ -8,7 +8,7 @@ def clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
     return max(lower, min(upper, value))
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Criterion:
     name: str
     weight: float
@@ -23,7 +23,7 @@ class Criterion:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Constraint:
     name: str
     metric: str
@@ -56,7 +56,7 @@ class Constraint:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Scenario:
     name: str
     metric_adjustments: dict[str, float] = field(default_factory=dict)
@@ -75,7 +75,7 @@ class Scenario:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class UserProfile:
     name: str
     weight_adjustments: dict[str, float] = field(default_factory=dict)
@@ -92,7 +92,7 @@ class UserProfile:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CandidateBlueprint:
     name: str
     description: str
@@ -113,7 +113,7 @@ class CandidateBlueprint:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class HistoryEntry:
     label: str
     score: float
@@ -128,7 +128,7 @@ class HistoryEntry:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class IdealizationRequest:
     title: str
     domain: str
@@ -165,7 +165,7 @@ class IdealizationRequest:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Candidate:
     name: str
     description: str
@@ -176,7 +176,7 @@ class Candidate:
     collaboration_notes: list[str] = field(default_factory=list)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ScenarioAssessment:
     scenario_name: str
     score: float
@@ -185,7 +185,7 @@ class ScenarioAssessment:
     constraint_failures: list[str]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Recommendation:
     rank: int
     candidate: Candidate
@@ -200,7 +200,7 @@ class Recommendation:
     constraint_status: list[str]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class IdealizationResult:
     request_title: str
     applied_profile: str | None
