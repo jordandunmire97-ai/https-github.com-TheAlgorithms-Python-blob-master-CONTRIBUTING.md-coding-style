@@ -166,7 +166,7 @@ class IdealizationRequest:
             raise ValueError(f"Missing required request fields: {', '.join(missing)}")
         if not data.get("criteria"):
             raise ValueError("Request must define at least one criterion")
-        criteria = [Criterion.from_dict(item) for item in data.get("criteria", [])]
+        criteria = [Criterion.from_dict(item) for item in data["criteria"]]
         if len({criterion.name for criterion in criteria}) != len(criteria):
             raise ValueError("Criterion names must be unique")
         scenarios = [Scenario.from_dict(item) for item in data.get("scenarios", [])]
