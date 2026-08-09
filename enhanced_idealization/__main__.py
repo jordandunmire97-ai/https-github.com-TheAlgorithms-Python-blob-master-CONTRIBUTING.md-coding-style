@@ -59,7 +59,8 @@ def main() -> None:
     else:
         print(rendered)
     if args.save_result:
-        args.save_result.write_text(render_json_report(result) + "\n", encoding="utf-8")
+        saved = rendered if args.format == "json" else render_json_report(result)
+        args.save_result.write_text(saved + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

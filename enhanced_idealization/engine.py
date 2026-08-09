@@ -265,6 +265,7 @@ class EnhancedIdealizationEngine:
         base = 0.0
         for criterion in criteria:
             value = metrics.get(criterion.name, 0.0)
+            value = clamp(value)
             normalized = 1.0 - value if criterion.target == "minimize" else value
             base += normalized * criteria_weights.get(criterion.name, 0.0)
         status: list[str] = []

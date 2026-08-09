@@ -56,7 +56,7 @@ class Constraint:
         minimum = data.get("minimum")
         maximum = data.get("maximum")
         if minimum is None and maximum is None:
-            raise ValueError(f"Constraint needs a minimum or maximum: {data['name']}")
+            raise ValueError(f"Constraint must define a minimum or maximum: {data['name']}")
         if minimum is not None and maximum is not None and minimum > maximum:
             raise ValueError(f"Constraint minimum exceeds maximum: {data['name']}")
         return Constraint(
@@ -170,7 +170,7 @@ class IdealizationRequest:
         if len({criterion.name for criterion in criteria}) != len(criteria):
             raise ValueError("Criterion names must be unique")
         scenarios = [Scenario.from_dict(item) for item in data.get("scenarios", [])]
-        if scenarios and not sum(scenario.probability for scenario in scenarios):
+        if scenarios and sum(scenario.probability for scenario in scenarios) <= 0:
             raise ValueError("Scenario probabilities must have a positive total")
         return IdealizationRequest(
             title=data["title"],
