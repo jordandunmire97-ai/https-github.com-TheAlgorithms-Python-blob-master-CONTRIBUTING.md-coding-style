@@ -166,6 +166,12 @@ class IdealizationRequest:
             raise ValueError(f"Missing required request fields: {', '.join(missing)}")
         if not data.get("criteria"):
             raise ValueError("Request must define at least one criterion")
+        criteria = [Criterion.from_dict(item) for item in data.get("criteria", [])]
+        if len({criterion.name for criterion in criteria}) != len(criteria):
+            raise ValueError("Criterion names must be unique")
+        scenarios = [Scenario.from_dict(item) for item in data.get("scenarios", [])]
+        if scenarios and not sum(scenario.probability for scenario in scenarios):
+            raise ValueError("Scenario probabilities must have a positive total")
         return IdealizationRequest(
             title=data["title"],
             domain=data["domain"],
@@ -174,9 +180,9 @@ class IdealizationRequest:
             baseline_metrics={
                 key: clamp(float(value)) for key, value in data.get("baseline_metrics", {}).items()
             },
-            criteria=[Criterion.from_dict(item) for item in data.get("criteria", [])],
+            criteria=criteria,
             constraints=[Constraint.from_dict(item) for item in data.get("constraints", [])],
-            scenarios=[Scenario.from_dict(item) for item in data.get("scenarios", [])],
+            scenarios=scenarios,
             profiles=[UserProfile.from_dict(item) for item in data.get("profiles", [])],
             candidate_blueprints=[
                 CandidateBlueprint.from_dict(item) for item in data.get("candidate_blueprints", [])
