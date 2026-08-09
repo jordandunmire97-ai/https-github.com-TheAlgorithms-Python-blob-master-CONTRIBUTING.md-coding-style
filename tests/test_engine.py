@@ -4,6 +4,7 @@ import unittest
 
 from enhanced_idealization.engine import EnhancedIdealizationEngine
 from enhanced_idealization.models import IdealizationRequest
+from enhanced_idealization.reporting import render_json_report
 
 
 def build_request() -> IdealizationRequest:
@@ -180,6 +181,50 @@ class EnhancedIdealizationEngineTests(unittest.TestCase):
                 "Tradeoff analysis needs additional metrics beyond feasibility.",
             ],
         )
+
+    def test_minimize_criterion_prefers_lower_metric(self) -> None:
+        request = IdealizationRequest.from_dict(
+            {
+                "title": "Cost choice",
+                "domain": "finance",
+                "objective": "Reduce operating cost.",
+                "success_definition": "Lower cost is better.",
+                "baseline_metrics": {"cost": 0.2},
+                "criteria": [{"name": "cost", "weight": 1, "target": "minimize"}],
+                "candidate_blueprints": [
+                    {"name": "low", "description": "low", "metrics": {"cost": 0.1}},
+                    {"name": "high", "description": "high", "metrics": {"cost": 0.8}},
+                ],
+            }
+        )
+        result = self.engine.recommend(request)
+        self.assertEqual(result.recommendations[0].candidate.name, "low")
+
+    def test_request_validation_rejects_invalid_shapes(self) -> None:
+        with self.assertRaisesRegex(ValueError, "at least one criterion"):
+            IdealizationRequest.from_dict(
+                {
+                    "title": "Invalid",
+                    "domain": "test",
+                    "objective": "test",
+                    "success_definition": "test",
+                }
+            )
+        with self.assertRaisesRegex(ValueError, "minimum or maximum"):
+            IdealizationRequest.from_dict(
+                {
+                    "title": "Invalid",
+                    "domain": "test",
+                    "objective": "test",
+                    "success_definition": "test",
+                    "criteria": [{"name": "metric", "weight": 1}],
+                    "constraints": [{"name": "empty", "metric": "metric"}],
+                }
+            )
+
+    def test_json_report_is_serializable(self) -> None:
+        report = render_json_report(self.engine.recommend(self.request))
+        self.assertIn('"recommendations"', report)
 
 
 if __name__ == "__main__":

@@ -16,10 +16,16 @@ class Criterion:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> "Criterion":
+        target = data.get("target", "maximize")
+        if target not in {"maximize", "minimize"}:
+            raise ValueError(f"Unsupported criterion target: {target}")
+        weight = float(data.get("weight", 1.0))
+        if weight < 0:
+            raise ValueError(f"Criterion weight must be non-negative: {data['name']}")
         return Criterion(
             name=data["name"],
-            weight=float(data.get("weight", 1.0)),
-            target=data.get("target", "maximize"),
+            weight=weight,
+            target=target,
         )
 
 
@@ -47,11 +53,17 @@ class Constraint:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> "Constraint":
+        minimum = data.get("minimum")
+        maximum = data.get("maximum")
+        if minimum is None and maximum is None:
+            raise ValueError(f"Constraint needs a minimum or maximum: {data['name']}")
+        if minimum is not None and maximum is not None and minimum > maximum:
+            raise ValueError(f"Constraint minimum exceeds maximum: {data['name']}")
         return Constraint(
             name=data["name"],
             metric=data["metric"],
-            minimum=data.get("minimum"),
-            maximum=data.get("maximum"),
+            minimum=float(minimum) if minimum is not None else None,
+            maximum=float(maximum) if maximum is not None else None,
             locked=bool(data.get("locked", False)),
         )
 
@@ -65,12 +77,15 @@ class Scenario:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> "Scenario":
+        probability = float(data.get("probability", 1.0))
+        if probability < 0:
+            raise ValueError(f"Scenario probability must be non-negative: {data['name']}")
         return Scenario(
             name=data["name"],
             metric_adjustments={
                 key: float(value) for key, value in data.get("metric_adjustments", {}).items()
             },
-            probability=float(data.get("probability", 1.0)),
+            probability=probability,
             narrative=data.get("narrative", ""),
         )
 
@@ -145,6 +160,12 @@ class IdealizationRequest:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> "IdealizationRequest":
+        required = ("title", "domain", "objective", "success_definition")
+        missing = [field for field in required if not data.get(field)]
+        if missing:
+            raise ValueError(f"Missing required request fields: {', '.join(missing)}")
+        if not data.get("criteria"):
+            raise ValueError("Request must define at least one criterion")
         return IdealizationRequest(
             title=data["title"],
             domain=data["domain"],

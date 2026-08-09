@@ -6,6 +6,7 @@ from .models import (
     Candidate,
     CandidateBlueprint,
     Constraint,
+    Criterion,
     IdealizationRequest,
     IdealizationResult,
     Recommendation,
@@ -82,10 +83,16 @@ class EnhancedIdealizationEngine:
         recommendations = []
         for candidate in candidates:
             base_score, constraint_status = self._score_candidate(
-                candidate.metrics, request.constraints, criteria_weights
+                candidate.metrics, request.constraints, criteria_weights, request.criteria
             )
             scenario_assessments = [
-                self._simulate(candidate, scenario, request.constraints, criteria_weights)
+                self._simulate(
+                    candidate,
+                    scenario,
+                    request.constraints,
+                    criteria_weights,
+                    request.criteria,
+                )
                 for scenario in request.scenarios
             ]
             scenario_score = (
@@ -253,8 +260,13 @@ class EnhancedIdealizationEngine:
         metrics: dict[str, float],
         constraints: list[Constraint],
         criteria_weights: dict[str, float],
+        criteria: list[Criterion],
     ) -> tuple[float, list[str]]:
-        base = sum(metrics.get(name, 0.0) * weight for name, weight in criteria_weights.items())
+        base = 0.0
+        for criterion in criteria:
+            value = metrics.get(criterion.name, 0.0)
+            normalized = 1.0 - value if criterion.target == "minimize" else value
+            base += normalized * criteria_weights.get(criterion.name, 0.0)
         status: list[str] = []
         penalty = 0.0
         for constraint in constraints:
@@ -272,11 +284,12 @@ class EnhancedIdealizationEngine:
         scenario: Scenario,
         constraints: list[Constraint],
         criteria_weights: dict[str, float],
+        criteria: list[Criterion],
     ) -> ScenarioAssessment:
         adjusted = dict(candidate.metrics)
         for metric, delta in scenario.metric_adjustments.items():
             adjusted[metric] = clamp(adjusted.get(metric, 0.5) + delta)
-        score, status = self._score_candidate(adjusted, constraints, criteria_weights)
+        score, status = self._score_candidate(adjusted, constraints, criteria_weights, criteria)
         failures = [item.replace("fail: ", "") for item in status if item.startswith("fail: ")]
         notes = [scenario.narrative] if scenario.narrative else []
         if failures:

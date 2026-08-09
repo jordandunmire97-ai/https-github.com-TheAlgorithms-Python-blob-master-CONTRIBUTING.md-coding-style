@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from dataclasses import asdict
+
 from .models import IdealizationResult
 
 
@@ -34,3 +37,8 @@ def render_text_report(result: IdealizationResult) -> str:
                 f"constraint_failures={failures}"
             )
     return "\n".join(lines)
+
+
+def render_json_report(result: IdealizationResult) -> str:
+    """Render a result as stable, machine-readable JSON."""
+    return json.dumps(asdict(result), indent=2, sort_keys=True)
