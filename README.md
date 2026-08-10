@@ -30,6 +30,12 @@ cd /path/to/enhanced-idealization
 python -m enhanced_idealization examples/product_strategy.json --profile enterprise_ops
 ```
 
+Use `--format json` for machine-readable output, `--output report.json` to write a
+report to a file, and `--save-result previous.json` to persist a result for later
+comparison. Criteria may use `"target": "minimize"` when lower metric values are
+preferred. Requests require at least one criterion, and constraints must define a
+minimum or maximum.
+
 ## Run the tests
 
 ```bash

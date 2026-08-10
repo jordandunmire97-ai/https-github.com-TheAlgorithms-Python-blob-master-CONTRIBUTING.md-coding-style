@@ -8,7 +8,7 @@ def clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
     return max(lower, min(upper, value))
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Criterion:
     name: str
     weight: float
@@ -16,14 +16,20 @@ class Criterion:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> "Criterion":
+        target = data.get("target", "maximize")
+        if target not in {"maximize", "minimize"}:
+            raise ValueError(f"Unsupported criterion target: {target}")
+        weight = float(data.get("weight", 1.0))
+        if weight < 0:
+            raise ValueError(f"Criterion weight must be non-negative: {data['name']}")
         return Criterion(
             name=data["name"],
-            weight=float(data.get("weight", 1.0)),
-            target=data.get("target", "maximize"),
+            weight=weight,
+            target=target,
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Constraint:
     name: str
     metric: str
@@ -47,16 +53,22 @@ class Constraint:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> "Constraint":
+        minimum = data.get("minimum")
+        maximum = data.get("maximum")
+        if minimum is None and maximum is None:
+            raise ValueError(f"Constraint must define a minimum or maximum: {data['name']}")
+        if minimum is not None and maximum is not None and minimum > maximum:
+            raise ValueError(f"Constraint minimum exceeds maximum: {data['name']}")
         return Constraint(
             name=data["name"],
             metric=data["metric"],
-            minimum=data.get("minimum"),
-            maximum=data.get("maximum"),
+            minimum=float(minimum) if minimum is not None else None,
+            maximum=float(maximum) if maximum is not None else None,
             locked=bool(data.get("locked", False)),
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Scenario:
     name: str
     metric_adjustments: dict[str, float] = field(default_factory=dict)
@@ -65,17 +77,20 @@ class Scenario:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> "Scenario":
+        probability = float(data.get("probability", 1.0))
+        if probability < 0:
+            raise ValueError(f"Scenario probability must be non-negative: {data['name']}")
         return Scenario(
             name=data["name"],
             metric_adjustments={
                 key: float(value) for key, value in data.get("metric_adjustments", {}).items()
             },
-            probability=float(data.get("probability", 1.0)),
+            probability=probability,
             narrative=data.get("narrative", ""),
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class UserProfile:
     name: str
     weight_adjustments: dict[str, float] = field(default_factory=dict)
@@ -92,7 +107,7 @@ class UserProfile:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CandidateBlueprint:
     name: str
     description: str
@@ -113,7 +128,7 @@ class CandidateBlueprint:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class HistoryEntry:
     label: str
     score: float
@@ -128,7 +143,7 @@ class HistoryEntry:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class IdealizationRequest:
     title: str
     domain: str
@@ -145,6 +160,18 @@ class IdealizationRequest:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> "IdealizationRequest":
+        required = ("title", "domain", "objective", "success_definition")
+        missing = [field for field in required if not data.get(field)]
+        if missing:
+            raise ValueError(f"Missing required request fields: {', '.join(missing)}")
+        if not data.get("criteria"):
+            raise ValueError("Request must define at least one criterion")
+        criteria = [Criterion.from_dict(item) for item in data["criteria"]]
+        if len({criterion.name for criterion in criteria}) != len(criteria):
+            raise ValueError("Criterion names must be unique")
+        scenarios = [Scenario.from_dict(item) for item in data.get("scenarios", [])]
+        if scenarios and sum(scenario.probability for scenario in scenarios) <= 0:
+            raise ValueError("Scenario probabilities must have a positive total")
         return IdealizationRequest(
             title=data["title"],
             domain=data["domain"],
@@ -153,9 +180,9 @@ class IdealizationRequest:
             baseline_metrics={
                 key: clamp(float(value)) for key, value in data.get("baseline_metrics", {}).items()
             },
-            criteria=[Criterion.from_dict(item) for item in data.get("criteria", [])],
+            criteria=criteria,
             constraints=[Constraint.from_dict(item) for item in data.get("constraints", [])],
-            scenarios=[Scenario.from_dict(item) for item in data.get("scenarios", [])],
+            scenarios=scenarios,
             profiles=[UserProfile.from_dict(item) for item in data.get("profiles", [])],
             candidate_blueprints=[
                 CandidateBlueprint.from_dict(item) for item in data.get("candidate_blueprints", [])
@@ -165,7 +192,7 @@ class IdealizationRequest:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Candidate:
     name: str
     description: str
@@ -176,7 +203,7 @@ class Candidate:
     collaboration_notes: list[str] = field(default_factory=list)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ScenarioAssessment:
     scenario_name: str
     score: float
@@ -185,7 +212,7 @@ class ScenarioAssessment:
     constraint_failures: list[str]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Recommendation:
     rank: int
     candidate: Candidate
@@ -200,7 +227,7 @@ class Recommendation:
     constraint_status: list[str]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class IdealizationResult:
     request_title: str
     applied_profile: str | None
